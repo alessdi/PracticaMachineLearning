@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Redes Neuronales – Práctica Machine Learning</title>
+<meta name="description" content="Prueba en línea de tres redes neuronales: clasificación de frijol seco, regresión de potencia de una central de ciclo combinado y detección de fallas en motores con series de tiempo.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='8' cy='8' r='4' fill='%232563eb'/%3E%3Ccircle cx='8' cy='24' r='4' fill='%232563eb'/%3E%3Ccircle cx='24' cy='16' r='4' fill='%2316a34a'/%3E%3Cpath d='M8 8L24 16M8 24L24 16' stroke='%2364748b' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+<header class="cabecera">
+  <div class="contenedor">
+    <p class="etiqueta">Sistemas Inteligentes · Universidad Autónoma de Campeche</p>
+    <h1>Práctica Machine Learning: redes neuronales</h1>
+    <p class="sub">Prueba las tres redes entrenadas con datos industriales reales. Se ejecutan directamente en tu navegador con los pesos aprendidos en TensorFlow/Keras.</p>
+    <p class="autor">Alessandro Díaz · Prof. Justino Ramírez Ortegón</p>
+    <div class="enlaces">
+      <a href="https://github.com/alessdi/PracticaMachineLearning" target="_blank" rel="noopener">Código en GitHub</a>
+      <a href="https://colab.research.google.com/github/alessdi/PracticaMachineLearning/blob/main/notebooks/01_clasificacion_drybean.ipynb" target="_blank" rel="noopener">Entrenamiento en Colab</a>
+    </div>
+  </div>
+</header>
+
+<nav class="pestanas contenedor" role="tablist">
+  <button role="tab" data-tab="clas" aria-selected="true"><span class="num">1</span>Clasificación<small>Pattern recognition</small></button>
+  <button role="tab" data-tab="reg" aria-selected="false"><span class="num">2</span>Regresión<small>Fitting</small></button>
+  <button role="tab" data-tab="ser" aria-selected="false"><span class="num">3</span>Series de tiempo<small>Clasificación de señales</small></button>
+</nav>
+
+<main class="contenedor">
+  <p id="cargando" class="aviso">Cargando modelos…</p>
+
+  <!-- ============ 1. CLASIFICACIÓN ============ -->
+  <section id="clas" class="panel" role="tabpanel">
+    <div class="intro">
+      <h2>Clasificación de frijol seco por visión artificial</h2>
+      <p>Una cámara mide 16 características geométricas de cada grano y la red decide a cuál de las 7 variedades pertenece. Dataset <a href="https://archive.ics.uci.edu/dataset/602/dry+bean+dataset" target="_blank" rel="noopener">Dry Bean (UCI)</a>, 13 611 granos.</p>
+      <ul class="fichas">
+        <li><b>Red</b> MLP 16 → 128 → 64 → 7 (ReLU, BatchNorm, Dropout, softmax)</li>
+        <li><b>Exactitud en prueba</b> 92.70 %</li>
+      </ul>
+    </div>
+    <div class="rejilla">
+      <div class="tarjeta">
+        <div class="barra-herr">
+          <button class="btn primario" id="clas-aleatorio">Grano real aleatorio</button>
+          <label class="sel">Valores típicos de
+            <select id="clas-tipico"></select>
+          </label>
+        </div>
+        <p class="ayuda" id="clas-origen">Modifica cualquier medida y la red vuelve a clasificar al instante.</p>
+        <div class="campos" id="clas-campos"></div>
+      </div>
+      <div class="tarjeta resultado">
+        <p class="rotulo">Variedad predicha</p>
+        <p class="grande" id="clas-pred">—</p>
+        <p class="detalle" id="clas-real"></p>
+        <div id="clas-barras" class="barras"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 2. REGRESIÓN ============ -->
+  <section id="reg" class="panel" role="tabpanel" hidden>
+    <div class="intro">
+      <h2>Potencia eléctrica de una central de ciclo combinado</h2>
+      <p>La red estima la potencia neta por hora que entrega la planta a carga completa a partir de cuatro variables ambientales. Dataset <a href="https://archive.ics.uci.edu/dataset/294/combined+cycle+power+plant" target="_blank" rel="noopener">Combined Cycle Power Plant (UCI)</a>, 9 568 registros.</p>
+      <ul class="fichas">
+        <li><b>Red</b> MLP 4 → 128 → 64 → 32 → 1 (ReLU, salida lineal)</li>
+        <li><b>Prueba</b> R² = 0.948 · RMSE = 3.88 MW</li>
+      </ul>
+    </div>
+    <div class="rejilla">
+      <div class="tarjeta">
+        <div class="barra-herr">
+          <button class="btn primario" id="reg-aleatorio">Registro real aleatorio</button>
+          <button class="btn" id="reg-reiniciar">Valores promedio</button>
+        </div>
+        <p class="ayuda" id="reg-origen">Mueve los controles para cambiar las condiciones ambientales.</p>
+        <div id="reg-controles"></div>
+      </div>
+      <div class="tarjeta resultado">
+        <p class="rotulo">Potencia estimada</p>
+        <p class="grande"><span id="reg-pred">—</span> <span class="unidad">MW</span></p>
+        <p class="detalle" id="reg-real"></p>
+        <div class="medidor"><div id="reg-medidor"></div></div>
+        <div class="escala"><span>420 MW</span><span>496 MW</span></div>
+      </div>
+    </div>
+    <div class="rejilla dos">
+      <figure class="tarjeta">
+        <figcaption>Efecto de la temperatura (resto de variables fijas)</figcaption>
+        <canvas id="reg-curva" height="260"></canvas>
+      </figure>
+      <figure class="tarjeta">
+        <figcaption>400 registros de prueba: real contra predicho</figcaption>
+        <canvas id="reg-dispersion" height="260"></canvas>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============ 3. SERIES DE TIEMPO ============ -->
+  <section id="ser" class="panel" role="tabpanel" hidden>
+    <div class="intro">
+      <h2>Detección de fallas en motores con series de tiempo</h2>
+      <p>Cada ejemplo son 500 lecturas del sensor de ruido de un motor automotriz en la prueba de fin de línea. La red convolucional decide si el motor tiene una falla. Dataset <a href="https://www.timeseriesclassification.com/description.php?Dataset=FordA" target="_blank" rel="noopener">FordA (UCR Archive)</a>.</p>
+      <ul class="fichas">
+        <li><b>Red</b> FCN: 3 × [Conv1D 64 filtros, kernel 7 + BatchNorm + ReLU] → GAP → softmax</li>
+        <li><b>Exactitud en prueba</b> 93.79 % (1 320 series)</li>
+      </ul>
+    </div>
+    <div class="rejilla">
+      <div class="tarjeta">
+        <div class="barra-herr">
+          <button class="btn primario" id="ser-aleatorio">Serie aleatoria</button>
+          <label class="sel">Serie de prueba
+            <select id="ser-lista"></select>
+          </label>
+        </div>
+        <canvas id="ser-grafica" height="240"></canvas>
+        <div class="control">
+          <label for="ser-ruido">Ruido agregado al sensor <output id="ser-ruido-val">0.00</output></label>
+          <input type="range" id="ser-ruido" min="0" max="1.5" step="0.05" value="0">
+        </div>
+        <div class="barra-herr">
+          <label class="btn archivo">Cargar mi serie (.csv / .txt, 500 valores)
+            <input type="file" id="ser-archivo" accept=".csv,.txt,.tsv">
+          </label>
+        </div>
+      </div>
+      <div class="tarjeta resultado">
+        <p class="rotulo">Diagnóstico de la red</p>
+        <p class="grande" id="ser-pred">—</p>
+        <p class="detalle" id="ser-real"></p>
+        <div id="ser-barras" class="barras"></div>
+        <hr>
+        <button class="btn" id="ser-evaluar">Evaluar las 40 series de ejemplo</button>
+        <p class="detalle" id="ser-eval"></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="pie contenedor">
+  <p>Modelos entrenados en Python con TensorFlow/Keras; la inferencia se hace en JavaScript con los mismos pesos (verificada contra Keras). Datos: UCI Machine Learning Repository y UCR Time Series Archive.</p>
+</footer>
+
+<script src="red.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
